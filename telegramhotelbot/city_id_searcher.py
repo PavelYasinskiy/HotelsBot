@@ -1,13 +1,12 @@
-
-import requests
 import json
 
+import requests
 from decouple import config
-
 
 TOKEN_API = config('TOKEN_API')
 
-def city_id_searcher(city:str) -> list or None:
+
+def city_id_searcher(city: str) -> list or None:
     """
     Обращается к API и ищет id города, введенного пользователем.
     Возвращает название города и id.
@@ -15,13 +14,13 @@ def city_id_searcher(city:str) -> list or None:
     :return: list Возвращает название города и id.
     """
     city_name = city
-    if city_name != None:
+    if city_name is not None:
         city_url = "https://hotels4.p.rapidapi.com/locations/v2/search"
         city_querystring = {"query": f"{city_name}", "locale": "ru_RU"}
         city_headers = {
             'x-rapidapi-host': "hotels4.p.rapidapi.com",
             'x-rapidapi-key': TOKEN_API
-            }
+        }
         city_response = requests.request("GET", city_url, headers=city_headers, params=city_querystring)
         if city_response.status_code != 200:
             return None

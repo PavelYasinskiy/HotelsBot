@@ -1,5 +1,7 @@
 import sqlite3
+
 from loguru import logger
+
 
 @logger.catch
 def create_info(user_id: int) -> None:
@@ -33,6 +35,7 @@ def create_info(user_id: int) -> None:
         finally:
             user_data.commit()
 
+
 @logger.catch()
 def add_info(column: str, value: any, user_id: int) -> None:
     """
@@ -46,6 +49,7 @@ def add_info(column: str, value: any, user_id: int) -> None:
         cur = user_data.cursor()
         cur.execute(f"""UPDATE users SET {column} = ? WHERE user_id = ?""", (value, user_id))
         user_data.commit()
+
 
 @logger.catch()
 def show_info(user_id: int) -> list:

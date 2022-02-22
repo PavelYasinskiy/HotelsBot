@@ -1,7 +1,9 @@
-from dbase import Data_Base
 import datetime
 
-def add_history(info: list, names:list) -> None:
+from dbase import data_base
+
+
+def add_history(info: list, names: list) -> None:
     """
     Получает доступ к базе данных и
     добавляет информацию о команде, отелях и времени поиска пользователем.
@@ -21,7 +23,7 @@ def add_history(info: list, names:list) -> None:
                          f" разделитель Дата и время: {time} " \
                          f" разделитель {('Отель: ').join(hotel_names)}"
         history_adding = user_info[12]
-    Data_Base.add_info(column="history", value=history_adding, user_id=int(user_info[0]))
+    data_base.add_info(column="history", value=history_adding, user_id=int(user_info[0]))
 
 
 def return_history(user_id: int) -> list or None:
@@ -33,7 +35,7 @@ def return_history(user_id: int) -> list or None:
     :return: list История поиска пользователя
     """
     try:
-        history = Data_Base.show_info(user_id=user_id)[12]
+        history = data_base.show_info(user_id=user_id)[12]
         history_clean = history.split(' разделитель ')
         history_clean.remove("")
         counter = 0
@@ -54,6 +56,4 @@ def return_history(user_id: int) -> list or None:
                 string_to_add = ""
     except TypeError:
         output = None
-
     return output
-

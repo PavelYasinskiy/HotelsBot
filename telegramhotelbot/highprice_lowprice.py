@@ -1,12 +1,15 @@
 import json
-import requests
 import datetime
-from TelegramHotelBot import history, photo_searcher
+
 from decouple import config
+import requests
+
+from telegramhotelbot import history, photo_searcher
 
 TOKEN_API = config('TOKEN_API')
 
-def hotelsFinder(info: list) ->list:
+
+def hotels_finder(info: list) -> list:
     """
     Ищет отели по информации пользователя.
     Отбирает самые дешевые отели расположенные или самые дорогие, в зависимости от команды пользователя.
@@ -18,28 +21,26 @@ def hotelsFinder(info: list) ->list:
     user_info = info
     city = user_info[2]
     hotels_output = user_info[10]
-    checkIn = user_info[6]
-    checkOut = user_info[7]
+    check_in = user_info[6]
+    check_out = user_info[7]
     photo_count = int(user_info[11])
-    days = (datetime.datetime.strptime(user_info[7], "%Y-%m-%d").date()-
+    days = (datetime.datetime.strptime(user_info[7], "%Y-%m-%d").date() -
             datetime.datetime.strptime(user_info[6], "%Y-%m-%d").date()).days
     if user_info[1] == "lowprice":
         price_filter = "PRICE"
     else:
-        price_filter ="HIGHT_PRICE_FIRST"
-
-
+        price_filter = "HIGHT_PRICE_FIRST"
 
     hotels_url = "https://hotels4.p.rapidapi.com/properties/list"
     hotels_querystring = {"destinationId": f"{city}", "pageNumber": "1",
-                          "pageSize": f"{hotels_output}", "checkIn": f"{checkIn}",
-                   "checkOut": f"{checkOut}", "adults1": "1",
-                   "sortOrder": f"{price_filter}", "locale": "ru_RU", "currency": "RUB"}
+                          "pageSize": f"{hotels_output}", "checkIn": f"{check_in}",
+                          "checkOut": f"{check_out}", "adults1": "1",
+                          "sortOrder": f"{price_filter}", "locale": "ru_RU", "currency": "RUB"}
     print(hotels_querystring)
     hotels_headers = {
         'x-rapidapi-host': "hotels4.p.rapidapi.com",
         'x-rapidapi-key': TOKEN_API
-        }
+    }
     hotels_response = requests.request("GET", url=hotels_url, headers=hotels_headers, params=hotels_querystring)
     hotels_response.encoding = "utf-8"
     data = json.loads(hotels_response.text)
@@ -58,9 +59,9 @@ def hotelsFinder(info: list) ->list:
     for i in range(int(hotels_output)):
         hotel_names.append(data_short[i]['name'])
         try:
-            streetAddress = data_short[i]['address']['streetAddress']
+            street_address = data_short[i]['address']['streetAddress']
         except KeyError:
-            streetAddress = "Нет информации об адресе. Уточняйте на сайте отеля"
+            street_address = "Нет информации об адресе. Уточняйте на сайте отеля"
         try:
             locality = data_short[i]['address']['locality']
         except KeyError:
@@ -73,15 +74,13 @@ def hotelsFinder(info: list) ->list:
             cur_price = 'Нет информации. Уточняйте на сайте отеля'
         finally:
             hotel_id = data_short[i]['id']
-            photo_url = photo_searcher.photo_url(count=photo_count, id=hotel_id)
+            photo_url = photo_searcher.photo_url(count=photo_count, hotel_id=hotel_id)
             result.append((photo_url, f"Отель {data_short[i]['name']}\n"
-                  f"Адрес: {streetAddress},{locality},"
-                  f"{data_short[i]['address']['countryName']}\n"
-                  f"Удаленность от центра: {data_short[i]['landmarks'][0]['distance']}\n"
-                  f"Цена за {days} {days_name}: {price}\n"
-                  f"Цена за ночь {cur_price} RUB\n\n\n"
-                  f"Ссылка на сайт: https://ru.hotels.com/ho{hotel_id}"))
+                                      f"Адрес: {street_address},{locality},"
+                                      f"{data_short[i]['address']['countryName']}\n"
+                                      f"Удаленность от центра: {data_short[i]['landmarks'][0]['distance']}\n"
+                                      f"Цена за {days} {days_name}: {price}\n"
+                                      f"Цена за ночь {cur_price} RUB\n\n\n"
+                                      f"Ссылка на сайт: https://ru.hotels.com/ho{hotel_id}"))
     history.add_history(info=user_info, names=hotel_names)
     return result
-
-
