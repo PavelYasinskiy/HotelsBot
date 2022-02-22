@@ -1,19 +1,26 @@
-from telebot import types
-import telebot
-import requests
 import json
-import re
-bot = telebot.TeleBot('5097527148:AAE5i3807lIHTBVl-WXFHn0_sYEe6THdl_0')
-def city_id_searcher(city):
+
+import requests
+from decouple import config
+
+TOKEN_API = config('TOKEN_API')
+
+
+def city_id_searcher(city: str) -> list or None:
+    """
+    Обращается к API и ищет id города, введенного пользователем.
+    Возвращает название города и id.
+    :param city: str Название города
+    :return: list Возвращает название города и id.
+    """
     city_name = city
-    print(city_name)
-    if city_name != None:
+    if city_name is not None:
         city_url = "https://hotels4.p.rapidapi.com/locations/v2/search"
         city_querystring = {"query": f"{city_name}", "locale": "ru_RU"}
         city_headers = {
             'x-rapidapi-host': "hotels4.p.rapidapi.com",
-            'x-rapidapi-key': "2348478bc2msh746d87ae988083bp1b5dc8jsn48d3b426aa8f"
-            }
+            'x-rapidapi-key': TOKEN_API
+        }
         city_response = requests.request("GET", city_url, headers=city_headers, params=city_querystring)
         if city_response.status_code != 200:
             return None
@@ -24,8 +31,6 @@ def city_id_searcher(city):
                           or city_name.split("-") == city_id["suggestions"][0]["entities"][i]["name"].split(' ')
                           or city_name.split(" ") == city_id["suggestions"][0]["entities"][i]["name"].split('-')
                           ]
-
-        print(founded_cities)
         if len(founded_cities) == 0:
             return None
         else:
