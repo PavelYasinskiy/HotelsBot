@@ -10,7 +10,7 @@ from telegramhotelbot import history, photo_searcher
 TOKEN_API = config('TOKEN_API')
 
 
-def hotels_finder(info: list) -> list:
+def hotels_finder(info: list) -> list or None:
     """
     Ищет отели и отбирает их по цене, введенной пользователем.
     Отбирает самые дешевые отели расположенные ближе всего к
@@ -45,7 +45,15 @@ def hotels_finder(info: list) -> list:
         'x-rapidapi-host': "hotels4.p.rapidapi.com",
         'x-rapidapi-key': TOKEN_API
     }
-    hotels_response = requests.request("GET", url=hotels_url, headers=hotels_headers, params=hotels_querystring)
+    try:
+        hotels_response = requests.request("GET",
+                                           url=hotels_url,
+                                           headers=hotels_headers,
+                                           params=hotels_querystring,
+                                           timeout=(3, 8))
+    except requests.exceptions.Timeout:
+        return ["К сожалению сервер c отелями сейчас недоступен,\n"
+                "Попробуйте еще раз или зайдите позднее"]
     hotels_response.encoding = "utf-8"
     data = json.loads(hotels_response.text)
     if len(data['data']['body']['searchResults']["results"]) == 0:

@@ -21,10 +21,22 @@ def photo_url(count: int, hotel_id: int) -> str or None:
         'x-rapidapi-host': "hotels4.p.rapidapi.com",
         'x-rapidapi-key': TOKEN_API
     }
-    photo_response = requests.request("GET", photo_url_f, headers=photo_headers, params=photo_querystring)
-    data = json.loads(photo_response.text)
     try:
-        photo = [data["hotelImages"][i]["baseUrl"].replace("{size}", "b") for i in range(count)]
+        photo_response = requests.request("GET",
+                                          photo_url_f,
+                                          headers=photo_headers,
+                                          params=photo_querystring,
+                                          timeout=(3, 8))
+    except requests.exceptions.Timeout:
+        return ["Timeout"]
+    data = json.loads(photo_response.text)
+    photo = []
+    try:
+        for i in range(count):
+            try:
+                photo.append(data["hotelImages"][i]["baseUrl"].replace("{size}", "b"))
+            except IndexError:
+                pass
     except KeyError:
         return None
     return photo

@@ -9,7 +9,7 @@ from telegramhotelbot import history, photo_searcher
 TOKEN_API = config('TOKEN_API')
 
 
-def hotels_finder(info: list) -> list:
+def hotels_finder(info: list) -> list or None:
     """
     Ищет отели по информации пользователя.
     Отбирает самые дешевые отели расположенные или самые дорогие, в зависимости от команды пользователя.
@@ -41,7 +41,15 @@ def hotels_finder(info: list) -> list:
         'x-rapidapi-host': "hotels4.p.rapidapi.com",
         'x-rapidapi-key': TOKEN_API
     }
-    hotels_response = requests.request("GET", url=hotels_url, headers=hotels_headers, params=hotels_querystring)
+    try:
+        hotels_response = requests.request("GET",
+                                           url=hotels_url,
+                                           headers=hotels_headers,
+                                           params=hotels_querystring,
+                                           timeout=(3, 5))
+    except requests.exceptions.Timeout:
+        return ["К сожалению сервер с отелями сейчас недоступен,\n"
+                "Попробуйте еще раз или зайдите позднее"]
     hotels_response.encoding = "utf-8"
     data = json.loads(hotels_response.text)
     if len(data['data']['body']['searchResults']["results"]) == 0:
@@ -56,6 +64,8 @@ def hotels_finder(info: list) -> list:
         days_name = "дня"
     else:
         days_name = 'дней'
+    if len(data_short) < int(hotels_output):
+        hotels_output = len(data_short)
     for i in range(int(hotels_output)):
         hotel_names.append(data_short[i]['name'])
         try:
@@ -74,7 +84,8 @@ def hotels_finder(info: list) -> list:
             cur_price = 'Нет информации. Уточняйте на сайте отеля'
         finally:
             hotel_id = data_short[i]['id']
-            photo_url = photo_searcher.photo_url(count=photo_count, hotel_id=hotel_id)
+            photo_url = photo_searcher.photo_url(count=photo_count,
+                                                 hotel_id=hotel_id)
             result.append((photo_url, f"Отель {data_short[i]['name']}\n"
                                       f"Адрес: {street_address},{locality},"
                                       f"{data_short[i]['address']['countryName']}\n"
