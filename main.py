@@ -109,6 +109,10 @@ def find_city_id(message: types.Message):
             msg = bot.send_message(message.from_user.id, "Ошибка. Введите корректное название города:")
             logger.info(f'User {message.chat.id} enter a wrong city name.')
             bot.register_next_step_handler(msg, find_city_id)
+        elif city == 'Timeout':
+            msg = bot.send_message(message.from_user.id, "К сожалению сервер с отелями сейчас недоступен,\n"
+                                                         "Попробуйте еще раз или зайдите позднее")
+            bot.register_next_step_handler(msg, find_city_id)
         else:
             city_id = city[0]
             city_name = city[1]
@@ -322,13 +326,13 @@ def callback_photo(call: types.CallbackQuery):
             hotels = highprice_lowprice.hotels_finder(info)
             for i in hotels:
                 bot.send_message(call.message.chat.id, i, disable_web_page_preview=True)
-                time.sleep(1)
+                time.sleep(1.5)
             help_message(call)
         elif info[1] in ['bestdeal']:
             hotels = bestdeal.hotels_finder(info)
             for i in hotels:
                 bot.send_message(call.message.chat.id, i, disable_web_page_preview=True)
-                time.sleep(1)
+                time.sleep(1.5)
             help_message(call)
 
 
@@ -352,24 +356,31 @@ def get_photo_count(message: types.Message):
         if info[1] in ["highprice", 'lowprice']:
             hotels = highprice_lowprice.hotels_finder(info)
             for i in hotels:
-                if i[0] is None:
+                print(i[0])
+                if (i[0] is not None) or (i[0] != "Timeout"):
                     media_group = [types.InputMediaPhoto(media=url) for url in i[0]]
                     bot.send_media_group(message.chat.id, media_group)
+                elif i[0] == "Timeout":
+                    bot.send_message(message.chat.id, "К сожалению сервер с фотографиями сейчас недоступен,\n"
+                                                      "Попробуйте еще раз, или зайдите позднее")
                 else:
                     bot.send_message(message.chat.id, "Нет фотографий для отеля")
                 bot.send_message(message.chat.id, i[1], disable_web_page_preview=True)
-                time.sleep(1)
+                time.sleep(1.5)
             help_message(message)
         elif info[1] in ['bestdeal']:
             hotels = bestdeal.hotels_finder(info)
             for i in hotels:
-                if i[0] is None:
+                if (i[0] is not None) or (i[0] != "Timeout"):
                     media_group = [types.InputMediaPhoto(media=url) for url in i[0]]
                     bot.send_media_group(message.chat.id, media_group)
+                elif i[0] == "Timeout":
+                    bot.send_message(message.chat.id, "К сожалению сервер с фотографиями сейчас недоступен,\n"
+                                                      "Попробуйте еще раз, или зайдите позднее")
                 else:
                     bot.send_message(message.chat.id, "Нет фотографий для отеля")
                 bot.send_message(message.chat.id, i[1], disable_web_page_preview=True)
-                time.sleep(1)
+                time.sleep(1.5)
             help_message(message)
 
 
@@ -386,7 +397,7 @@ def history_to_user(message: types.Message):
 
     if to_user is None:
         bot.send_message(message.from_user.id, "Вашей истории пока нет.\nПоищите отели")
-        logger.info(f'User {message.chat.id} dont have history yet')
+        logger.info(f"User {message.chat.id} don't have history yet")
         help_message(message)
     else:
         for information in to_user:

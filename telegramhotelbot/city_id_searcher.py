@@ -21,7 +21,14 @@ def city_id_searcher(city: str) -> list or None:
             'x-rapidapi-host': "hotels4.p.rapidapi.com",
             'x-rapidapi-key': TOKEN_API
         }
-        city_response = requests.request("GET", city_url, headers=city_headers, params=city_querystring)
+        try:
+            city_response = requests.request("GET",
+                                             city_url,
+                                             headers=city_headers,
+                                             params=city_querystring,
+                                             timeout=(3, 8))
+        except requests.exceptions.Timeout:
+            return 'Timeout'
         if city_response.status_code != 200:
             return None
         city_id = json.loads(city_response.text)
